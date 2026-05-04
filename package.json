@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "vite preview"  // <-- AÑADE ESTA LÍNEA
+    "start": "vite preview" 
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.4",
