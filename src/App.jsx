@@ -31,29 +31,33 @@ const App = () => {
 */
 
 useEffect(() => {
-    const cargarDatos = async () => {
-      try {
-        // Hacemos el fetch a tu backend de Node.js
-        // Filtramos por municipio_id=1 (La Virginia)
-        const response = await api.get('/comercios?municipio_id=1');
-        
-        const todosLosComercios = response.data.data;
+  const cargarDatos = async () => {
+    try {
+      // 1. Petición al backend usando el municipio_id=1
+      const response = await api.get('/comercios?municipio_id=1');
+      
+      // 2. Acceso seguro a la data (usando el formato de tu controlador: response.data.data)
+      const todosLosComercios = response.data?.data || [];
 
-        // Si hay una categoría activa (que no sea "Todos"), filtramos en el cliente
-        if (categoriaActiva !== 'Todos') {
-          const filtrados = todosLosComercios.filter(c => c.categoria === categoriaActiva);
-          setComercios(filtrados);
-        } else {
-          setComercios(todosLosComercios);
-        }
-      } catch (error) {
-        console.error("Error conectando con la API:", error);
+      // 3. Filtrado lógico
+      if (categoriaActiva !== 'Todos') {
+        // Importante: c.categoria viene del JOIN que hiciste en el SQL (cat.nombre as categoria)
+        const filtrados = todosLosComercios.filter(c => 
+          c.categoria?.toLowerCase() === categoriaActiva.toLowerCase()
+        );
+        setComercios(filtrados);
+      } else {
+        setComercios(todosLosComercios);
       }
-    };
+    } catch (error) {
+      // Logueamos el error pero mantenemos el estado como array vacío para evitar el crash de .length
+      console.error("Error conectando con la API de Parche Local:", error);
+      setComercios([]); 
+    }
+  };
 
-    cargarDatos();
-  }, [categoriaActiva]); // Se vuelve a ejecutar cuando cambias de categoría
-
+  cargarDatos();
+}, [categoriaActiva]); // Se dispara cada vez que el usuario toca una categoría en el frontend
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-white font-sans selection:bg-purple-500/30">
       {/* Header */}
