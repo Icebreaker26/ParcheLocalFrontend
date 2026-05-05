@@ -13,11 +13,36 @@ const App = () => {
   const [comercios, setComercios] = useState([]);
   const [categoriaActiva, setCategoriaActiva] = useState('Todos');
 
+  const [eventos, setEventos] = useState([]);
+  const [cargandoEventos, setCargandoEventos] = useState(true);
+
   // Mock de eventos para el carrusel superior
-  const eventos = [
+  /*const eventos = [
     { id: 1, titulo: "Noche Tropical en Vivo", local: "La Terraza Club", fecha: "Hoy - 10:00 PM", imagen: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&q=80&w=800" },
     { id: 2, titulo: "Reggaeton Old School", local: "La Terraza Club", fecha: "Sáb 10 May - 9:00 PM", imagen: "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&q=80&w=800" }
-  ];
+  ];*/
+
+  useEffect(() => {
+  const cargarEventos = async () => {
+    try {
+      setCargandoEventos(true);
+      // Petición a la ruta que definiste: router.get('/', obtenerEventos);
+      const response = await api.get('/eventos'); 
+      
+      // Acceso a la data siguiendo tu estándar de respuesta
+      const eventosBackend = response.data?.data || [];
+      
+      setEventos(eventosBackend);
+    } catch (error) {
+      console.error("Error cargando eventos de Parche Local:", error);
+      setEventos([]); 
+    } finally {
+      setCargandoEventos(false);
+    }
+  };
+
+  cargarEventos();
+}, []); // Se ejecuta una sola vez al cargar la app
 
   // Simulamos la carga de datos que vendrá de tu PostgreSQL
   /*useEffect(() => {
@@ -58,6 +83,19 @@ useEffect(() => {
 
   cargarDatos();
 }, [categoriaActiva]); // Se dispara cada vez que el usuario toca una categoría en el frontend
+
+const esHoy = (fechaISO) => {
+  const fechaEvento = new Date(fechaISO);
+  const hoy = new Date();
+  
+  return (
+    fechaEvento.getDate() === hoy.getDate() &&
+    fechaEvento.getMonth() === hoy.getMonth() &&
+    fechaEvento.getFullYear() === hoy.getFullYear()
+  );
+};
+
+
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-white font-sans selection:bg-purple-500/30">
       {/* Header */}
@@ -88,42 +126,112 @@ useEffect(() => {
           <p className="text-gray-400 max-w-xl text-lg">Eventos, sitios para rumbear, comer y tomar café. Todo a un mensaje de distancia.</p>
         </section>
 
-        {/* Eventos Slider */}
+
+        {/* --- SECCIÓN 1: EVENTOS DE HOY (Slider con Aviso) --- */}
         <section className="mb-12">
           <div className="flex items-end justify-between mb-6">
             <div>
               <span className="text-purple-400 font-bold text-xs uppercase mb-1 block">Esta noche</span>
-              <h3 className="text-2xl font-bold">Rumba <span className="text-pink-500">en vivo</span></h3>
+              <h3 className="text-2xl font-bold">Parches <span className="text-pink-500">en vivo</span></h3>
             </div>
             <button className="text-gray-500 hover:text-white text-sm font-medium transition-colors">Ver todos →</button>
           </div>
+          
           <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-            {eventos.map(evento => (
-              <div key={evento.id} className="relative min-w-[320px] md:min-w-[450px] aspect-video rounded-3xl overflow-hidden group">
-                <img src={evento.imagen} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={evento.titulo} />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/20 to-transparent" />
-                <div className="absolute top-4 left-4 flex gap-2">
-                   <span className="bg-purple-600 text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 uppercase tracking-wider">
-                     <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> Hoy
-                   </span>
-                </div>
-                <div className="absolute bottom-6 left-6">
-                  <div className="flex items-center gap-2 text-purple-300 text-xs font-bold mb-1">
-                    <Clock size={12} /> {evento.fecha}
+            {/* Primero filtramos para saber si hay algo que mostrar */}
+            {eventos.filter(evento => esHoy(evento.fecha_inicio)).length > 0 ? (
+              eventos
+                .filter(evento => esHoy(evento.fecha_inicio))
+                .map(evento => (
+                  <div key={evento.id} className="relative min-w-[320px] md:min-w-[450px] aspect-video rounded-3xl overflow-hidden group">
+                    <img src={evento.imagen_url} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={evento.titulo} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/20 to-transparent" />
+                    
+                    <div className="absolute top-4 left-4 flex gap-2">
+                      <span className="bg-purple-600 text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 uppercase tracking-wider">
+                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> 
+                        Hoy
+                      </span>
+                    </div>
+
+                    <div className="absolute bottom-6 left-6">
+                      <div className="flex items-center gap-2 text-purple-300 text-xs font-bold mb-1">
+                        <Clock size={12} /> 
+                        <span className="capitalize">
+                          {new Date(evento.fecha_inicio).toLocaleString('es-CO', { 
+                            weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                          }).replace('.', '')}
+                        </span>
+                      </div>
+                      <h4 className="text-xl font-bold mb-1">{evento.titulo}</h4>
+                      <div className="flex items-center gap-1 text-gray-400 text-sm italic">
+                        <MapPin size={12} /> {evento.nombre_local}
+                      </div>
+                    </div>
                   </div>
-                  <h4 className="text-xl font-bold mb-1">{evento.titulo}</h4>
-                  <div className="flex items-center gap-1 text-gray-400 text-sm italic">
-                    <MapPin size={12} /> {evento.local}
-                  </div>
+                ))
+            ) : (
+              /* AVISO: Cuando no hay eventos hoy */
+              <div className="w-full flex flex-col items-center justify-center py-12 border-2 border-dashed border-gray-800 rounded-3xl bg-[#16161a]/30">
+                <div className="text-gray-600 mb-2">
+                  <Clock size={32} strokeWidth={1} />
                 </div>
+                <p className="text-gray-500 text-sm italic">No hay parches programados para hoy...</p>
+                <p className="text-gray-700 text-xs uppercase font-bold mt-1">¡Mira los próximos eventos abajo!</p>
               </div>
-            ))}
+            )}
           </div>
         </section>
 
+
+        {/* --- SECCIÓN 2: PRÓXIMOS EVENTOS (Slider Idéntico) --- */}
+        <section className="mb-12">
+          <div className="flex items-end justify-between mb-6">
+            <div>
+              <span className="text-purple-400 font-bold text-xs uppercase mb-1 block">Agéndate</span>
+              <h3 className="text-2xl font-bold">Próximos <span className="text-purple-500">Eventos</span></h3>
+            </div>
+          </div>
+          
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+            {eventos
+              .filter(evento => !esHoy(evento.fecha_inicio)) // Filtro para NO es Hoy
+              .sort((a, b) => new Date(a.fecha_inicio) - new Date(b.fecha_inicio)) // Orden cronológico
+              .map(evento => (
+                <div key={evento.id} className="relative min-w-[320px] md:min-w-[450px] aspect-video rounded-3xl overflow-hidden group">
+                  <img src={evento.imagen_url} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={evento.titulo} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/20 to-transparent" />
+                  
+                  {/* Aquí podrías poner un badge de precio en lugar del de "Hoy" */}
+                  <div className="absolute top-4 left-4">
+                    <span className="bg-gray-900/80 backdrop-blur-sm text-[10px] font-bold px-3 py-1 rounded-full text-white uppercase tracking-wider border border-white/10">
+                      {evento.precio_cover > 0 ? `$${Number(evento.precio_cover).toLocaleString('es-CO')}` : 'Entrada Libre'}
+                    </span>
+                  </div>
+
+                  <div className="absolute bottom-6 left-6">
+                    <div className="flex items-center gap-2 text-purple-300 text-xs font-bold mb-1">
+                      <Clock size={12} /> 
+                      <span className="capitalize">
+                        {new Date(evento.fecha_inicio).toLocaleString('es-CO', { 
+                          weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+                        }).replace('.', '')}
+                      </span>
+                    </div>
+                    <h4 className="text-xl font-bold mb-1">{evento.titulo}</h4>
+                    <div className="flex items-center gap-1 text-gray-400 text-sm italic">
+                      <MapPin size={12} /> {evento.comercio_nombre}
+                    </div>
+                  </div>
+                </div>
+              ))}
+          </div>
+        </section>
+
+
         {/* Categorías */}
         <nav className="flex gap-2 overflow-x-auto mb-10 pb-2 scrollbar-hide">
-          {['Todos', 'Rumba', 'Restaurantes', 'Café', 'Servicios'].map(cat => (
+          {['Todos', 'Rumba y Discotecas', 'Gastronomía', 'Eventos y Cultura'].map(cat => (
             <button
               key={cat}
               onClick={() => setCategoriaActiva(cat)}
@@ -134,10 +242,9 @@ useEffect(() => {
                   : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10"
               )}
             >
-              {cat === 'Rumba' && <Music size={14}/>}
-              {cat === 'Restaurantes' && <Utensils size={14}/>}
-              {cat === 'Café' && <Coffee size={14}/>}
-              {cat === 'Servicios' && <Hammer size={14}/>}
+              {cat === 'Rumba y Discotecas' && <Music size={14}/>}
+              {cat === 'Gastronomía' && <Utensils size={14}/>}
+              {cat === 'Eventos y Cultura' && <Coffee size={14}/>}
               {cat}
             </button>
           ))}
