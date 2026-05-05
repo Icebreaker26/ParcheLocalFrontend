@@ -5,6 +5,10 @@ import { twMerge } from 'tailwind-merge';
 import api from './api'; // Importa la instancia de Axios que apunta a http://localhost:4000/api
 import { Zap, Timer} from 'lucide-react'; // Iconos llamativos
 import {  Mail} from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { NavBar } from './components/navbar';
+import { Footer } from './components/Footer';
+
 
 // Utilidad para manejar clases de Tailwind
 function cn(...inputs) {
@@ -125,23 +129,9 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-white font-sans selection:bg-purple-500/30">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#0a0a0c]/80 backdrop-blur-md border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center shadow-lg shadow-purple-500/20">
-              <Music size={18} />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold leading-none">El Parche Local</h1>
-            </div>
-          </div>
-          <button className="flex items-center gap-2 bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-full border border-white/10 transition-all">
-            <MapPin size={14} className="text-purple-400" />
-            <span className="text-sm font-medium">La Virginia</span>
-          </button>
-        </div>
-      </header>
-
+        
+          <NavBar />
+     
       <main className="pt-24 pb-12 px-4 max-w-7xl mx-auto">
         {/* Hero Section */}
         <section className="mb-12">
@@ -281,6 +271,12 @@ useEffect(() => {
               .sort((a, b) => new Date(a.fecha_inicio) - new Date(b.fecha_inicio)) // Orden cronológico
               .map(evento => (
                 <div key={evento.id} className="relative min-w-[320px] md:min-w-[450px] aspect-video rounded-3xl overflow-hidden group">
+                      <Link 
+                          to={`/evento/${evento.id}`} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="absolute inset-0 z-20" // Un overlay invisible para que toda la tarjeta sea clickable
+                        />
                   <img src={evento.imagen_url} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={evento.titulo} />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/20 to-transparent" />
                   
@@ -425,77 +421,7 @@ useEffect(() => {
   </div>
 </section>
 
-
-<footer className="bg-[#0a0a0c] border-t border-gray-800 pt-16 pb-8">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
-          
-          {/* Columna 1: Branding */}
-          <div className="col-span-1 md:col-span-1">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="bg-pink-500 p-1.5 rounded-lg">
-                <Zap size={20} className="text-white fill-white" />
-              </div>
-              <span className="text-xl font-black tracking-tighter text-white uppercase">
-                Parche<span className="text-pink-500">Local</span>
-              </span>
-            </div>
-            <p className="text-gray-500 text-sm leading-relaxed mb-6">
-              La plataforma oficial de los mejores eventos, promociones y parches en La Virginia, Risaralda. No te pierdas de nada.
-            </p>
-           
-          </div>
-
-          {/* Columna 2: Navegación */}
-          <div>
-            <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Explorar</h4>
-            <ul className="space-y-4 text-sm">
-              <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Comercios</a></li>
-              <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Eventos de Hoy</a></li>
-              <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Promos Flash</a></li>
-              <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Mapa del Parche</a></li>
-            </ul>
-          </div>
-
-          {/* Columna 3: Soporte/Legal */}
-          <div>
-            <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Plataforma</h4>
-            <ul className="space-y-4 text-sm">
-              <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Publicar mi negocio</a></li>
-              <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Términos y condiciones</a></li>
-              <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Privacidad</a></li>
-              <li><a href="#" className="text-gray-500 hover:text-purple-400 transition-colors">Preguntas frecuentes</a></li>
-            </ul>
-          </div>
-
-          {/* Columna 4: Contacto Local */}
-          <div>
-            <h4 className="text-white font-bold mb-6 uppercase text-xs tracking-widest">Contacto</h4>
-            <ul className="space-y-4 text-sm">
-              <li className="flex items-start gap-3 text-gray-500">
-                <MapPin size={18} className="text-pink-500 shrink-0" />
-                <span>La Virginia, Risaralda, Colombia</span>
-              </li>
-              <li className="flex items-center gap-3 text-gray-500">
-                <Mail size={18} className="text-pink-500 shrink-0" />
-                <span>contacto@parchelocal.com</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {/* Línea final y Copyright */}
-        <div className="pt-8 border-t border-gray-900 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-gray-600 text-xs text-center md:text-left">
-            © {new Date().getFullYear()} Parche Local. Todos los derechos reservados.
-          </p>
-          <div className="flex items-center gap-2">
-             <span className="text-gray-600 text-[10px] uppercase font-bold tracking-widest">Desarrollado por Icebreaker26</span>
-             <div className="w-2 h-2 bg-pink-500 rounded-full animate-pulse" />
-          </div>
-        </div>
-      </div>
-    </footer>
+            <Footer />
       </main>
 
 
