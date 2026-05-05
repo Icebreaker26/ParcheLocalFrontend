@@ -165,7 +165,7 @@ const esHoy = (fechaISO) => {
                       </div>
                       <h4 className="text-xl font-bold mb-1">{evento.titulo}</h4>
                       <div className="flex items-center gap-1 text-gray-400 text-sm italic">
-                        <MapPin size={12} /> {evento.nombre_local}
+                        <MapPin size={12} /> {evento.comercio_nombre}
                       </div>
                     </div>
                   </div>
