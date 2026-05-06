@@ -32,6 +32,10 @@ createRoot(document.getElementById('root')).render(
 
         <Route path="/perfil" element ={<Perfil />} />
 
+       
+
+
+
 
 
 

@@ -1,14 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { MessageCircle, MapPin, Clock, Star, Music, Utensils, Coffee, Hammer } from 'lucide-react';
+import { Link } from 'react-router-dom';
+
+import { MessageCircle, MapPin, Clock, Star, Music, Utensils, Coffee, Hammer, Zap, Timer, Mail } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+
+//SERVICIO DEL API
 import api from './api'; // Importa la instancia de Axios que apunta a http://localhost:4000/api
-import { Zap, Timer} from 'lucide-react'; // Iconos llamativos
-import {  Mail} from 'lucide-react';
-import { Link } from 'react-router-dom';
+
+//COMPONENTES
 import { NavBar } from './components/navbar';
 import { Footer } from './components/Footer';
-
+import BotonFavorito from './components/BotonFavorito';
+import { Marketing } from './components/Marketing';
+import { ComercioCard } from './components/ComercioCard';
+import { ProximosEventosCard } from './components/ProximosEventosCard';
+import { PromoFlashCard } from './components/PromoFlashCard';
+import { ParcheVivoCard } from './components/ParcheVivoCard';
 
 // Utilidad para manejar clases de Tailwind
 function cn(...inputs) {
@@ -50,16 +58,6 @@ const App = () => {
   cargarEventos();
 }, []); // Se ejecuta una sola vez al cargar la app
 
-  // Simulamos la carga de datos que vendrá de tu PostgreSQL
-  /*useEffect(() => {
-    const mockComercios = [
-      { id: 1, nombre: "La Terraza Club", categoria: "Rumba", direccion: "Cra 8 #6-32, Centro", descripcion: "Discoteca tropical con shows en vivo todos los fines de semana.", es_premium: true, abierto: true, imagen: "https://images.unsplash.com/photo-1566737236500-c8ac43014a67?auto=format&fit=crop&q=80&w=600" },
-      { id: 2, nombre: "El Puerto Burger", categoria: "Restaurantes", direccion: "Cl 9 #4-21, Malecón", descripcion: "Hamburguesas artesanales a la parrilla, frente al malecón.", es_premium: false, abierto: true, imagen: "https://images.unsplash.com/photo-1571091718767-18b5b1457add?auto=format&fit=crop&q=80&w=600" },
-      { id: 3, nombre: "Café del Río", categoria: "Café", direccion: "Cra 7 #5-10, Parque Principal", descripcion: "Café de origen, repostería casera y wifi rápido.", es_premium: true, abierto: false, imagen: "https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&q=80&w=600" }
-    ];
-    setComercios(mockComercios);
-  }, []);
-*/
 
 useEffect(() => {
   const cargarDatos = async () => {
@@ -127,7 +125,7 @@ useEffect(() => {
 
 
   return (
-    <div className="min-h-screen bg-[#0a0a0c] text-white font-sans selection:bg-purple-500/30">
+      <div className="min-h-screen bg-[#0a0a0c] text-white font-sans selection:bg-purple-500/30">
       {/* Header */}
         
           <NavBar />
@@ -143,7 +141,8 @@ useEffect(() => {
         </section>
 
 
-        {/* --- SECCIÓN 1: EVENTOS DE HOY (Slider con Aviso) --- */}
+
+         {/* --- SECCIÓN 1: EVENTOS DE HOY (Slider con Aviso) --- */}
         <section className="mb-12">
           <div className="flex items-end justify-between mb-6">
             <div>
@@ -159,32 +158,8 @@ useEffect(() => {
               eventos
                 .filter(evento => esHoy(evento.fecha_inicio))
                 .map(evento => (
-                  <div key={evento.id} className="relative min-w-[320px] md:min-w-[450px] aspect-video rounded-3xl overflow-hidden group">
-                    <img src={evento.imagen_url} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={evento.titulo} />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/20 to-transparent" />
-                    
-                    <div className="absolute top-4 left-4 flex gap-2">
-                      <span className="bg-purple-600 text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 uppercase tracking-wider">
-                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" /> 
-                        Hoy
-                      </span>
-                    </div>
-
-                    <div className="absolute bottom-6 left-6">
-                      <div className="flex items-center gap-2 text-purple-300 text-xs font-bold mb-1">
-                        <Clock size={12} /> 
-                        <span className="capitalize">
-                          {new Date(evento.fecha_inicio).toLocaleString('es-CO', { 
-                            weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-                          }).replace('.', '')}
-                        </span>
-                      </div>
-                      <h4 className="text-xl font-bold mb-1">{evento.titulo}</h4>
-                      <div className="flex items-center gap-1 text-gray-400 text-sm italic">
-                        <MapPin size={12} /> {evento.comercio_nombre}
-                      </div>
-                    </div>
-                  </div>
+                  <ParcheVivoCard evento={evento} key={evento.id} />
+                   
                 ))
             ) : (
               /* AVISO: Cuando no hay eventos hoy */
@@ -200,60 +175,35 @@ useEffect(() => {
         </section>
 
 
-              {/* --- SECCIÓN: PROMOCIONES FLASH --- */}
-<section className="mb-12">
-  <div className="flex items-end justify-between mb-6">
-    <div>
-      <span className="text-amber-400 font-bold text-xs uppercase mb-1 block flex items-center gap-1">
-        <Zap size={14} className="fill-amber-400" /> Ofertas limitadas
-      </span>
-      <h3 className="text-2xl font-bold">Promos <span className="text-amber-500 italic">Flash</span></h3>
-    </div>
-  </div>
 
-  <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-    {promociones.length > 0 ? (
-      promociones.map((promo) => (
-        <div 
-          key={promo.id} 
-          className="relative min-w-[280px] md:min-w-[320px] p-[2px] rounded-3xl bg-gradient-to-br from-amber-500 to-orange-600 animate-border-pulse"
-        >
-          <div className="bg-[#0a0a0c] rounded-[22px] p-6 h-full flex flex-col justify-between relative overflow-hidden">
-            <Zap className="absolute -right-2 -top-2 text-amber-500/5" size={100} />
-            
+
+          {/* --- SECCIÓN: PROMOCIONES FLASH --- */}
+        <section className="mb-12">
+          <div className="flex items-end justify-between mb-6">
             <div>
-              <div className="flex justify-between items-center mb-4">
-                <span className="bg-amber-500 text-black text-[10px] font-black px-2 py-0.5 rounded uppercase">
-                  Solo hoy
-                </span>
-                <div className="flex items-center gap-1 text-amber-500 font-mono text-xs font-bold">
-                  <Timer size={12} />
-                  Faltan: {new Date(promo.expira_en).getHours() - new Date().getHours()}h
-                </div>
-              </div>
-              
-              <h4 className="text-lg font-bold text-white mb-1 leading-tight">
-                {promo.descripcion}
-              </h4>
-            </div>
-
-            <div className="mt-4 pt-4 border-t border-white/5 flex items-center gap-2">
-              <MapPin size={14} className="text-pink-500" />
-              <span className="text-xs text-gray-400 font-bold truncate">
-                {promo.comercio_nombre}
+              <span className="text-amber-400 font-bold text-xs uppercase mb-1 block flex items-center gap-1">
+                <Zap size={14} className="fill-amber-400" /> Ofertas limitadas
               </span>
+              <h3 className="text-2xl font-bold">Promos <span className="text-amber-500 italic">Flash</span></h3>
             </div>
           </div>
-        </div>
-      ))
-    ) : (
-      /* Aviso cuando no hay promociones */
-      <div className="w-full py-8 text-center border-2 border-dashed border-gray-800 rounded-3xl opacity-50">
-        <p className="text-gray-500 text-sm italic">No hay ofertas flash en este momento...</p>
-      </div>
-    )}
-  </div>
-</section>
+
+          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
+            {promociones.length > 0 ? (
+              promociones.map((promo) => (
+                <PromoFlashCard promo={promo}
+                  key={promo.id} 
+                />
+                
+              ))
+            ) : (
+              /* Aviso cuando no hay promociones */
+              <div className="w-full py-8 text-center border-2 border-dashed border-gray-800 rounded-3xl opacity-50">
+                <p className="text-gray-500 text-sm italic">No hay ofertas flash en este momento...</p>
+              </div>
+            )}
+          </div>
+        </section>
 
 
         {/* --- SECCIÓN 2: PRÓXIMOS EVENTOS (Slider Idéntico) --- */}
@@ -270,38 +220,8 @@ useEffect(() => {
               .filter(evento => !esHoy(evento.fecha_inicio)) // Filtro para NO es Hoy
               .sort((a, b) => new Date(a.fecha_inicio) - new Date(b.fecha_inicio)) // Orden cronológico
               .map(evento => (
-                <div key={evento.id} className="relative min-w-[320px] md:min-w-[450px] aspect-video rounded-3xl overflow-hidden group">
-                      <Link 
-                          to={`/evento/${evento.id}`} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="absolute inset-0 z-20" // Un overlay invisible para que toda la tarjeta sea clickable
-                        />
-                  <img src={evento.imagen_url} className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" alt={evento.titulo} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0c] via-[#0a0a0c]/20 to-transparent" />
+                <ProximosEventosCard key={evento.id} evento={evento} />
                   
-                  {/* Aquí podrías poner un badge de precio en lugar del de "Hoy" */}
-                  <div className="absolute top-4 left-4">
-                    <span className="bg-gray-900/80 backdrop-blur-sm text-[10px] font-bold px-3 py-1 rounded-full text-white uppercase tracking-wider border border-white/10">
-                      {evento.precio_cover > 0 ? `$${Number(evento.precio_cover).toLocaleString('es-CO')}` : 'Entrada Libre'}
-                    </span>
-                  </div>
-
-                  <div className="absolute bottom-6 left-6">
-                    <div className="flex items-center gap-2 text-purple-300 text-xs font-bold mb-1">
-                      <Clock size={12} /> 
-                      <span className="capitalize">
-                        {new Date(evento.fecha_inicio).toLocaleString('es-CO', { 
-                          weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-                        }).replace('.', '')}
-                      </span>
-                    </div>
-                    <h4 className="text-xl font-bold mb-1">{evento.titulo}</h4>
-                    <div className="flex items-center gap-1 text-gray-400 text-sm italic">
-                      <MapPin size={12} /> {evento.comercio_nombre}
-                    </div>
-                  </div>
-                </div>
               ))}
           </div>
         </section>
@@ -328,6 +248,7 @@ useEffect(() => {
           ))}
         </nav>
 
+    
         {/* Listado de Comercios */}
         <section>
           <div className="flex justify-between items-center mb-8">
@@ -337,104 +258,27 @@ useEffect(() => {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {comercios.map(negocio => (
-              <div 
-                key={negocio.id} 
+              <ComercioCard 
+                key={negocio.id}
+                negocio={negocio} 
                 className={cn(
                   "group relative bg-[#131316] rounded-[2rem] overflow-hidden border transition-all duration-500 hover:translate-y-[-4px]",
                   negocio.es_premium ? "border-amber-500/30 shadow-xl shadow-amber-500/5" : "border-white/5"
                 )}
-              >
-                <div className="aspect-[4/3] overflow-hidden relative">
-                  <img src={negocio.logo_url || 'https://via.placeholder.com/400x300?text=Sin+Imagen'} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={negocio.nombre} />
-                  <div className="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter text-gray-300">
-                    {negocio.categoria}
-                  </div>
-                  {negocio.es_premium && (
-                    <div className="absolute top-4 right-4 bg-amber-500 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter text-black flex items-center gap-1">
-                      <Star size={10} fill="black" /> Recomendado
-                    </div>
-                  )}
-                </div>
-
-                <div className="p-6">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className={cn("w-2 h-2 rounded-full", negocio.abierto ? "bg-green-500 animate-pulse" : "bg-red-500")} />
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500">
-                      {negocio.abierto ? "Abierto ahora" : "Cerrado"}
-                    </span>
-                  </div>
-                  
-                  <h4 className="text-xl font-bold mb-1">{negocio.nombre}</h4>
-                  <div className="flex items-center gap-1 text-gray-500 text-xs mb-3">
-                    <MapPin size={12} /> {negocio.direccion}
-                  </div>
-                  <p className="text-gray-400 text-sm line-clamp-2 mb-6 h-10 leading-relaxed">
-                    {negocio.descripcion}
-                  </p>
-
-                  <button className="w-full bg-[#25D366] hover:bg-[#20bd5b] text-black font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-green-500/10">
-                    Contactar por WhatsApp
-                  </button>
-                </div>
-              </div>
+              />
+                
             ))}
           </div>
         </section>
 
-
         
-      {/* --- SECCIÓN DE MARKETING / CAPTACIÓN --- */}
-<section className="mb-16 mt-8">
-  <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-purple-900 via-indigo-900 to-black p-8 md:p-12 border border-white/10">
-    
-    {/* Decoración abstracta de fondo */}
-    <div className="absolute -right-10 -top-10 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl" />
-    <div className="absolute -left-10 -bottom-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl" />
-
-    <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-      <div className="max-w-2xl text-center md:text-left">
-        <h3 className="text-3xl md:text-4xl font-black text-white mb-4 leading-tight">
-          ¿Aún no estás publicando <br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-purple-400">
-            tus parches?
-          </span>
-        </h3>
-        <p className="text-gray-300 text-lg">
-          Únete a la plataforma que mueve la movida en La Virginia. Haz que tu negocio sea el centro de atención esta noche.
-        </p>
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-4">
-        <a 
-          href="https://wa.me/573217467837" // Reemplaza con tu número
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-8 py-4 bg-white text-black font-bold rounded-full hover:bg-pink-500 hover:text-white transition-all duration-300 transform hover:scale-105 flex items-center justify-center gap-2 shadow-xl shadow-white/5"
-        >
-          Contactar por WhatsApp
-        </a>
-        <button className="px-8 py-4 bg-transparent border border-white/20 text-white font-bold rounded-full hover:bg-white/5 transition-all">
-          Saber más
-        </button>
-      </div>
-    </div>
-  </div>
-</section>
-
+            <Marketing />
             <Footer />
       </main>
-
-
-
     </div>
-
-
-
 
   );
 };
-
-
 
 
 export default App;

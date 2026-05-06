@@ -1,13 +1,35 @@
-import { useContext, useState } from 'react';
+import { useContext, useState, useEffect } from 'react';
 import { AuthContext } from '../context/AuthContext';
-import { User, Mail, Calendar, Heart, Ticket, Settings, LogOut, Camera, MapPin } from 'lucide-react';
+import { User, Mail, Calendar, Heart, Ticket, Settings, LogOut, Camera, MapPin, Loader2 } from 'lucide-react';
 import { NavBar } from './navbar';
 import { useNavigate, Link } from 'react-router-dom';
+import api from '../api'; // Importa la instancia de Axios que apunta a http://localhost:4000/api
+
 
 const Perfil = () => {
   const { usuario, logout } = useContext(AuthContext);
   const [tabActivo, setTabActivo] = useState('actividad'); // 'actividad' | 'guardados' | 'ajustes'
+
+  const [favoritos, setFavoritos] = useState([]);
+  const [cargandoFavs, setCargandoFavs] = useState(false);
   
+    // 2. Efecto para cargar los favoritos cuando cambie a la pestaña 'guardados'
+  useEffect(() => {
+      const cargarFavoritos = async () => {
+        setCargandoFavs(true);
+        try {
+          const res = await api.get(`/usuarios/favoritos/usuario/${usuario.id}`);
+          setFavoritos(res.data.data);
+        } catch (error) {
+          console.error("Error cargando favoritos", error);
+        } finally {
+          setCargandoFavs(false);
+        }
+      };
+      cargarFavoritos();
+    
+  }, [usuario]);
+
   // Si por alguna razón entra sin estar logueado (aunque deberías proteger la ruta)
   if (!usuario) return null;
 
@@ -75,7 +97,7 @@ const Perfil = () => {
           <div className="grid grid-cols-3 gap-4">
             {[
               { icon: <Ticket className="text-purple-400" />, label: 'Eventos Asistidos', value: '12' },
-              { icon: <Heart className="text-pink-400" />, label: 'Favoritos', value: '5' },
+              { icon: <Heart className="text-pink-400" />, label: 'Favoritos', value: favoritos.length },
               { icon: <MapPin className="text-indigo-400" />, label: 'Nuevos Lugares', value: '8' },
             ].map((stat, i) => (
               <div key={i} className="bg-[#111114] border border-white/5 rounded-2xl p-5 flex flex-col items-center justify-center text-center hover:bg-white/[0.02] transition-colors">
@@ -118,13 +140,39 @@ const Perfil = () => {
               </div>
             )}
 
-            {tabActivo === 'guardados' && (
-              <div className="flex flex-col items-center justify-center h-full text-center py-10 opacity-70">
-                <Heart size={48} className="text-gray-600 mb-4" />
-                <h3 className="text-lg font-bold text-white mb-2">Sin lugares favoritos</h3>
-                <p className="text-sm text-gray-500">Guarda los comercios que más te gusten presionando el corazón.</p>
-              </div>
-            )}
+                    {tabActivo === 'guardados' && (
+                <div className="h-full">
+                    {cargandoFavs ? (
+                    <div className="flex justify-center items-center py-20">
+                        <Loader2 className="animate-spin text-pink-500" size={32} />
+                    </div>
+                    ) : favoritos.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center text-center py-10 opacity-70">
+                        <Heart size={48} className="text-gray-600 mb-4" />
+                        <h3 className="text-lg font-bold text-white mb-2">Sin lugares favoritos</h3>
+                        <p className="text-sm text-gray-500">Guarda los comercios que más te gusten presionando el corazón.</p>
+                    </div>
+                    ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {favoritos.map((fav) => (
+                        <div key={fav.favorito_id} className="bg-[#0a0a0c] border border-white/5 rounded-xl p-4 flex items-center gap-4 hover:border-pink-500/30 transition-colors">
+                            <img 
+                            src={fav.logo_url || 'https://via.placeholder.com/80'} 
+                            alt={fav.nombre} 
+                            className="w-16 h-16 rounded-lg object-cover bg-[#111114]"
+                            />
+                            <div className="flex-1">
+                            <span className="text-[10px] font-bold text-pink-500 uppercase tracking-wider">{fav.categoria_nombre}</span>
+                            <h4 className="text-white font-bold text-lg leading-tight">{fav.nombre}</h4>
+                            <p className="text-xs text-gray-500 mt-1 truncate">{fav.direccion}</p>
+                            </div>
+                            {/* Opcional: Aquí podrías reutilizar el BotonFavorito pasándole initialState={true} */}
+                        </div>
+                        ))}
+                    </div>
+                    )}
+                </div>
+                )}
 
             {tabActivo === 'ajustes' && (
               <div className="space-y-6">
