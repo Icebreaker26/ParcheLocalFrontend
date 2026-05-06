@@ -6,10 +6,15 @@ import App from './App.jsx'
 import EventoDetalle from './components/EventoDetalle.jsx' // Asegúrate de importar el componente
 import TerminosCondiciones from './components/TerminosCondiciones.jsx'
 import SobreNosotros from './components/SobreNosotros.jsx'
+import Registro from './components/Registro.jsx'
+import { AuthProvider } from './context/AuthContext.jsx' // <-- Importas el Provider
+import Login from './components/Login.jsx'
+import Perfil from './components/Perfil.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
+        <BrowserRouter>
+    <AuthProvider>
       <Routes>
         {/* Tu Home o App principal */}
         <Route path="/" element={<App />} />
@@ -21,8 +26,19 @@ createRoot(document.getElementById('root')).render(
 
         <Route path="/sobrenosotros" element ={<SobreNosotros />} />
 
+        <Route path="/login" element ={<Login />} />
+
+        <Route path="/registro" element ={<Registro />} />
+
+        <Route path="/perfil" element ={<Perfil />} />
+
+
+
+
 
       </Routes>
-    </BrowserRouter>
+    </AuthProvider>
+        </BrowserRouter>
+
   </StrictMode>
 )
